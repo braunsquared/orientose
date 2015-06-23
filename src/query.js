@@ -54,6 +54,8 @@ export default class Query {
 
 		this._params = {};
 
+		this._select = [];
+
 		this._operators = [];
 		this._set    = null;
 	}
@@ -228,6 +230,11 @@ export default class Query {
 		});
 		return self;
 	}	
+
+	select(key) {
+		this._select.push(key);
+		return this;
+	}
 
 	where(conditions, callback) {
 		conditions = conditions || {};
@@ -428,6 +435,16 @@ export default class Query {
 			}
 		}
 
+		var select;
+		if ( this._select.length > 0 ) {
+			this._select.push("@version");
+			this._select.push("@rid");
+			this._select.push("@class");
+			select = this._select.join(",");
+		} else {
+			select = "*"
+		}
+
 		var isGraph = schema instanceof GraphSchema;
 		if(isGraph) {
 			var graphType = schema instanceof EdgeSchema ? 'EDGE' : 'VERTEX';
@@ -437,7 +454,7 @@ export default class Query {
 			} else if(operation === Operation.DELETE) {
 				query = query.delete(graphType, target);
 			} else if(operation === Operation.SELECT) {
-				query = query.select().from(target);
+				query = query.select(select).from(target);
 			} else {
 				query = query.update(target);
 			}
@@ -447,7 +464,7 @@ export default class Query {
 			} else if(operation === Operation.DELETE) {
 				query = query.delete().from(target);
 			} else if(operation === Operation.SELECT) {
-				query = query.select().from(target);
+				query = query.select(select).from(target);
 			} else {
 				query = query.update(target);
 			}			
